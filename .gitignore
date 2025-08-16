@@ -1,4 +1,10 @@
 venv/
 docs/
 __pycache__/
+.env
+spectra/
+spectra_new/
+rm2442-1.XLSX
+rm2525-1.txt
+rm2442-1(Sample_1.1.txt)
 

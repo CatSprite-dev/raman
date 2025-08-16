@@ -2,19 +2,20 @@ import rampy as rp
 import numpy as np
 import enum
 import matplotlib.pyplot as plt
+import os
 
 
 class Method(enum.Enum):
     rubberband = "rubberband"
     poly = "poly"
-    arPLS = "arPLS"
+    als = "als"
 
 
 
 class Spectrum():
     def __init__(self, path):
         self.path = path
-        self.spectrum = np.genfromtxt(self.path, skip_header=10, delimiter=',')
+        self.spectrum = np.genfromtxt(self.path, skip_header=10, delimiter=",")
         self.x = self.spectrum[:, 0]
         self.y = self.spectrum[:, 1]
 
@@ -28,14 +29,20 @@ class Spectrum():
     def show_plot(self, fig=None):
         plt.show()
 
-    def substract_baseline(self, method):
+    def substract_baseline(self, method, polynomial_order=None):
         if method == Method.rubberband:
             corrected_signal, baseline = rp.baseline(self.x, self.y, method="rubberband")
             return corrected_signal, baseline
-        if method == Method.arPLS:
-            corrected_signal, baseline = rp.baseline(self.x, self.y, method="arPLS", lam=1e3, ratio=0.05)
+        if method == Method.als:
+            corrected_signal, baseline = rp.baseline(self.x, self.y, method="als", niter = 5)
             return corrected_signal, baseline
         if method == Method.poly:
             corrected_signal, baseline = rp.baseline(self.x, self.y, method="poly")
             return corrected_signal, baseline
+        
+    def show_all_spectra(self, spectra, src_dir):
+        for spec in spectra:
+            spectrum = Spectrum(os.path.abspath(f"{src_dir}/{spec}"))
+            spectrum.create_plot(spectrum.x, spectrum.y, name=spec)
+        self.show_plot()
     
