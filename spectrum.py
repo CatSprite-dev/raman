@@ -3,6 +3,7 @@ import numpy as np
 import enum
 import matplotlib.pyplot as plt
 import os
+from create_dataframe import detect_separator
 
 
 class Method(enum.Enum):
@@ -15,7 +16,8 @@ class Method(enum.Enum):
 class Spectrum():
     def __init__(self, path):
         self.path = path
-        self.spectrum = np.genfromtxt(self.path, skip_header=10, delimiter=",")
+        delimiter = detect_separator(path)
+        self.spectrum = np.genfromtxt(self.path, skip_header=10, delimiter=delimiter)
         self.x = self.spectrum[:, 0]
         self.y = self.spectrum[:, 1]
 
