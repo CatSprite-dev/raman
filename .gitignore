@@ -10,5 +10,6 @@ rm2525-1.txt
 rm2442-1(Sample_1.1).txt
 Anatase__R120013__Raman__532__0__unoriented__Raman_Data_RAW__36397.txt
 rm2442-1.2.txt
-.DS_Store
-spectra_test/
+spectra_test/.DS_Store
+spectra_test
+
