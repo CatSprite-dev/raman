@@ -86,12 +86,7 @@ The program generates a `predictions.csv` file with predictions for each spectru
 * Python 3.7+
 * Dependencies listed in `requirements.txt`
 
-
-
-
-
-
-
+================================================================================================================================================
 
 # Анализ спектроскопических данных Рамана
 
