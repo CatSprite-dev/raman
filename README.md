@@ -1,4 +1,92 @@
-Вот README.md для вашего проекта:
+```markdown
+# Raman Spectroscopic Data Analysis
+
+This project is designed for the systematic analysis and classification of Raman spectroscopic data employing modern machine learning techniques. The framework provides tools for preprocessing, dimensionality reduction, and predictive modeling, with the ultimate goal of facilitating reproducible research in spectroscopic data science.
+
+## Project Structure
+
+```
+
+.
+├── main.py              # Primary script for executing the analysis
+├── model.py             # Machine learning model implementation
+├── create\_dataframe.py  # Construction of DataFrames from raw data
+├── process.py           # Spectral preprocessing functions
+├── spectrum.py          # Class for managing and visualizing spectra
+├── requirements.txt     # Project dependencies
+└── model/               # Directory for storing trained models
+
+````
+
+## Installation
+
+1. Clone the repository.  
+2. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+````
+
+## Usage
+
+### Running the analysis
+
+```bash
+python main.py
+```
+
+### Environment configuration
+
+Define the necessary paths by creating a `.env` file in the root directory of the project with the following variables:
+
+```
+LIBRARY_PATH=path_to_spectrum_library
+MAP_PATH=path_to_spectral_map
+REFERENCE_SPECTRUM=path_to_reference_spectrum
+```
+
+## Functionality
+
+### Core modules:
+
+1. **main.py** – orchestrates the overall workflow:
+
+   * Loads or trains a classification model
+   * Processes new spectroscopic measurements
+   * Generates predictions
+   * Exports results to a CSV file
+
+2. **model.py** – implements and trains a multinomial logistic regression model for spectral classification
+
+3. **create\_dataframe.py** – transforms spectroscopic datasets into structured DataFrames suitable for analysis
+
+4. **process.py** – provides preprocessing functionality:
+
+   * Spectral trimming
+   * Spectral interpolation
+
+5. **spectrum.py** – a dedicated class for handling individual spectra:
+
+   * Visualization of Raman spectra
+   * Baseline correction (noted to be computationally intensive)
+   * Spectral comparison
+
+## Features
+
+* Dimensionality reduction via Principal Component Analysis (PCA)
+* Classification using multinomial logistic regression
+* Support for multiple baseline correction strategies
+* Integrated visualization tools for Raman spectra
+
+## Output
+
+The framework produces a `predictions.csv` file containing the predicted class labels for each spectrum and reports the class distribution in percentages.
+
+## Requirements
+
+* Python 3.7+
+* Dependencies as specified in `requirements.txt`
+
+
 
 # Анализ спектроскопических данных Рамана
 
@@ -79,5 +167,3 @@ REFERENCE_SPECTRUM=путь_к_эталонному_спектру
 - Python 3.7+
 - Зависимости указаны в requirements.txt
 ```
-
-Этот README предоставляет общее описание проекта, инструкции по установке и использованию, а также объясняет структуру и функциональность каждого модуля.
