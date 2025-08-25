@@ -21,7 +21,21 @@ A project for analyzing and classifying Raman spectroscopic data using machine l
 ## Installation
 
 1. Clone the repository  
-2. Install dependencies:
+
+2. Create and activate a virtual environment (optional but recommended)
+
+On Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+On Linux/Mac:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ````
@@ -108,7 +122,21 @@ The program generates a `predictions.csv` file with predictions for each spectru
 ## Установка
 
 1. Клонируйте репозиторий
-2. Установите зависимости:
+
+2. Создайте и активируйте виртуальное окружение (рекомендуется, но не обязательно)
+
+Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+Linux/Mac:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Установите зависимости:
 ```bash
 pip install -r requirements.txt
 ```
