@@ -1,4 +1,4 @@
-```markdown
+
 # Raman Spectroscopic Data Analysis
 
 This project is designed for the systematic analysis and classification of Raman spectroscopic data employing modern machine learning techniques. The framework provides tools for preprocessing, dimensionality reduction, and predictive modeling, with the ultimate goal of facilitating reproducible research in spectroscopic data science.
