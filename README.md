@@ -10,7 +10,7 @@ A project for analyzing and classifying Raman spectroscopic data using machine l
 .
 ├── main.py              # Main script for running the analysis
 ├── model.py             # Machine learning model
-├── create\_dataframe.py  # Create a DataFrame from data
+├── create_dataframe.py  # Create a DataFrame from data
 ├── process.py           # Spectrum processing functions
 ├── spectrum.py          # Class for working with spectra
 ├── requirements.txt     # Project dependencies
