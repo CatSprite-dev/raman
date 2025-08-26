@@ -4,6 +4,7 @@ __pycache__/
 trash/
 .env
 spectra/
+library/
 spectra_new/
 rm2442-1.XLSX
 rm2525-1.txt
@@ -13,3 +14,4 @@ rm2442-1.2.txt
 spectra_test/.DS_Store
 spectra_test
 
+.DS_Store
