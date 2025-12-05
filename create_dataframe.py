@@ -1,13 +1,12 @@
 import pandas as pd
 import numpy as np
-import rampy as rp
 import os
 import joblib
 from process import trim, interpol
 from dotenv import load_dotenv
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-
+import matplotlib.pyplot as plt
 
 
 
@@ -35,9 +34,10 @@ def get_spectrum_range(spectrum_path: str) -> tuple[np.ndarray, np.ndarray]:
 
 
 def create_reference_dataframe(library_path: str) -> pd.DataFrame:
-    range_x, range_y = get_spectrum_range(os.environ.get("REFERENCE_SPECTRUM")) #Создаем референсный спектр
-
+    load_dotenv()
     library = os.listdir(library_path) #Получаем список спектров в папке
+    
+    reference_spectrum_x, reference_spectrum_y = get_spectrum_range(os.environ.get("REFERENCE_SPECTRUM"))
 
     general_data_frame = pd.DataFrame()
     targets = []
@@ -50,13 +50,10 @@ def create_reference_dataframe(library_path: str) -> pd.DataFrame:
         spectrum_x = spectrum[:, 0]
         spectrum_y = spectrum[:, 1]
 
-        corrected_y, baseline = rp.baseline(spectrum_x, spectrum_y, method="als", niter = 5) #Приводим к базовой линии
-        corrected_y: np.ndarray = corrected_y.flatten() #Приводим 2D массив к 1D массиву так как .baseline() возвращает коррекцию в формате 2D (n, 1)
+        trimmed_x, trimmed_y = trim(spectrum_x, spectrum_y, reference_spectrum_x) #Обрезаем спектр до спектра эталона          
+        interpolated_y = interpol(trimmed_x, trimmed_y, reference_spectrum_x) #Интерполируем спектр на сетку эталона
 
-        trimmed_x, trimmed_y = trim(spectrum_x, corrected_y, range_x) #Обрезаем спектр до спектра эталона          
-        interpolated_y = interpol(trimmed_x, trimmed_y, range_x) #Интерполируем спектр на сетку эталона
-
-        temp_df = pd.DataFrame(interpolated_y.reshape(1, -1), columns=range_x) #Создаем временный df 
+        temp_df = pd.DataFrame(interpolated_y.reshape(1, -1), columns=reference_spectrum_x) #Создаем временный df 
         targets.append(sample_name)
         general_data_frame = pd.concat([general_data_frame, temp_df], ignore_index=True) #Добавляем временный df к основному
 
@@ -79,7 +76,7 @@ def create_reference_dataframe(library_path: str) -> pd.DataFrame:
     joblib.dump(pca, 'model/pca_model.pkl')
     X_pca = pca.transform(general_data_frame_scaled)
 
-    #добавляем главные компоненты в основной датафрейм
+    #добавим главные компоненты в основной датафрейм
     for i in range(X_pca.shape[1]):
         general_data_frame_scaled[i+10001] = X_pca[:, i]
     
@@ -88,10 +85,15 @@ def create_reference_dataframe(library_path: str) -> pd.DataFrame:
     #Сохраняем датафрейм в csv файл
     general_data_frame_scaled.to_csv("model/reference_df.csv", index=False)
 
+    general_data_frame_scaled[reference_spectrum_x] = general_data_frame.values
+
     return general_data_frame_scaled
 
+
+
 def create_dataframe_from_map(map_path: str):
-    range_x, range_y = get_spectrum_range(os.environ.get("REFERENCE_SPECTRUM")) #Создаем референсный спектр
+    load_dotenv()
+    reference_spectrum_x, reference_spectrum_y = get_spectrum_range(os.environ.get("REFERENCE_SPECTRUM"))
 
     df = pd.read_csv(map_path, sep="\t") #создаем DataFrame pandas
     grouped = df.groupby(['X', 'Y']) #Группируем строки по уникальным значениям X и Y
@@ -103,7 +105,10 @@ def create_dataframe_from_map(map_path: str):
         spectrum_sorted = spectrum[spectrum[:, 0].argsort()] #Сортируем массив
         spectra.append(spectrum_sorted)
         coordinates.append(coord)
-        
+    
+
+
+    """    
     corrected_spectra = []
     baselines = []
     for spectrum in spectra:
@@ -112,30 +117,32 @@ def create_dataframe_from_map(map_path: str):
         correct_y, baseline = rp.baseline(x, y, method="als", niter = 5) #Приводим спектр к базовой линии 
         corrected_spectra.append(np.column_stack((x, correct_y))) #Создаем двумерный массив np из одномерных массивов x и y(correcr_y)
         baselines.append(np.column_stack((x, baseline))) #То же самое и для базовой линии
-    """
+    
     normalised_spectra = []
     for corr_spectrum in corrected_spectra:
         x = corr_spectrum[:, 0] #Первый столбик W
         y = corr_spectrum[:, 1] #Второй столбик I
         normalise_y = rp.normalise(y, x) #Нормализуем спектры, чтобы интенсивность была в пределах от 0 до 1
         normalised_spectra.append(np.column_stack((x, normalise_y))) #Создаем двумерный np массив из одномерных массивов x и normalise_y
-    """
+    
     smoothed_spectra = []
-    for morm_spectrum in corrected_spectra: #Сглаживаем спектры, используя метод smooth и проделывая те же самые процедуры, что и в циклах выше
+    for morm_spectrum in normalised_spectra: #Сглаживаем спектры, используя метод smooth и проделывая те же самые процедуры, что и в циклах выше
         x = morm_spectrum[:, 0]
         y = morm_spectrum[:, 1]
         smooothed_y = rp.smooth(x, y, method="savgol", window_length = 11, polyorder = 5)
         smoothed_spectra.append(np.column_stack((x, smooothed_y)))
-    
+    """
+
     final_data_frame = pd.DataFrame()
-    for smoothed_spectrum in smoothed_spectra:
+    for smoothed_spectrum in spectra:
         x = smoothed_spectrum[:, 0]
         y = smoothed_spectrum[:, 1]
-        trimmed_x, trimmed_y = trim(x, y, range_x) #Обрезаем спектр до спектра эталона          
-        interpolated_y = interpol(trimmed_x, trimmed_y, range_x) #Интерполируем спектр на сетку эталона
+        trimmed_x, trimmed_y = trim(x, y, reference_spectrum_x) #Обрезаем спектр до спектра эталона          
+        interpolated_y = interpol(trimmed_x, trimmed_y, reference_spectrum_x) #Интерполируем спектр на сетку эталона
 
-        temp_df = pd.DataFrame(interpolated_y.reshape(1, -1), columns=range_x) #Создаем временный df 
+        temp_df = pd.DataFrame(interpolated_y.reshape(1, -1), columns=reference_spectrum_x) #Создаем временный df 
         final_data_frame = pd.concat([final_data_frame, temp_df], ignore_index=True) #Добавляем временный df к основному
+
 
     #Создаем объект StandardScaler для стандартизации данных
     scaler: StandardScaler = joblib.load("model/scaler_model.pkl")  # Загружаем scaler из файла
