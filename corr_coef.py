@@ -4,8 +4,9 @@ import numpy as np
 import rampy as rp
 import pandas as pd
 import matplotlib.pyplot as plt
+from max_heap import MaxHeap
 from tqdm import tqdm
-from spectrum import Spectrum
+from spectrum import Spectrum, process_lib_spectra
 from process import trim, interpol
 from dotenv import load_dotenv
 from create_dataframe import detect_separator
@@ -70,54 +71,27 @@ def main():
     
     library_path = os.environ.get("LIBRARY_PATH")
     library = os.listdir(library_path) #Получаем список спектров в папке
+    library_norm = process_lib_spectra(library, library_path)
+
     common_count = 0
+    result = {} 
+    for spec in tqdm(smoothed_spectra, desc=f"{'Подсчет результатов':{width}}", ncols=120, colour="red", bar_format='{l_bar}{bar:40}|{n_fmt}/{total_fmt}'):
+        heap = MaxHeap()
+        for lib_norm in library_norm:
+            trimmed_x, trimmed_y = trim(spec[:, 0], spec[:, 1], lib_norm.x) #Обрезаем спеткр до диапазона библиотечного
+            interpolated_y = interpol(trimmed_x, trimmed_y, lib_norm.x) #Интерполируем обрезанный спектр на библиотечный
+            corr_coef = np.around(np.corrcoef(interpolated_y, lib_norm.y)[0,1], 2) #Высчитываем коэфициент корреляции
 
-    result = {}
-    for lib_spec in tqdm(library, desc=f"{'Подсчет результатов':{width}}", ncols=120, colour="red", bar_format='{l_bar}{bar:40}|{n_fmt}/{total_fmt}'):
-        count = 0
-        try:
-            lib_spectrum = Spectrum(f"{library_path}/{lib_spec}")  # Создаем экземпляр класса Spectrum
-        except Exception as e:
-            print(f"\nОшибка при чтении спектра: {lib_spec}")
-            print(f"Причина: {e}\n")
-            raise
+            if corr_coef > 0.50:
+                heap.push(corr_coef, lib_norm.name)
 
-        #lib_spectrum = Spectrum(f"{library_path}/{lib_spec}") #Создаем экземпяр класса Spectrum
-        lib_corr_y, _ = rp.baseline(lib_spectrum.x, lib_spectrum.y, method="als", niter = 5) #Приводим к базовой линии
-        lib_norm_y = rp.normalise(lib_corr_y.flatten(), lib_spectrum.x) #Нормализуем
-        for spec in smoothed_spectra:
-            trimmed_x, trimmed_y = trim(spec[:, 0], spec[:, 1], lib_spectrum.x) #Обрезаем спеткр до диапазона библиотечного
-            interpolated_y = interpol(trimmed_x, trimmed_y, lib_spectrum.x) #Интерполируем обрезанный спектр на библиотечный
-            corr_coef = np.around(np.corrcoef(interpolated_y, lib_norm_y)[0,1], 2) #Высчитываем коэфициент корреляции
-            
-            full_name = lib_spectrum.path.split("/")[1]
-            if "_" in full_name:
-                name = full_name.split("_")[0]
-            else:
-                name = full_name.split(".")[0]
-
-            if corr_coef > 0.5:
-                if name.lower() in ["titanite.txt", "brookite.txt", "magnetite.txt", "ilmenite", "anatase"]:
-                    if corr_coef > 0.65:
-                        count += 1
-                        common_count += 1
-                else:
-                    count += 1
-                    common_count += 1
-            
-        
-            """
-            if name == "Pyrite" and corr_coef > 0.4:
-                plt.figure(figsize=(12, 6))
-                plt.plot(lib_spectrum.x, interpolated_y, label = 'Спектр')
-                plt.plot(lib_spectrum.x, lib_norm_y, label = 'Библиотечный')
-                plt.title(f"Коэфициент корреляции = {corr_coef}")
-                plt.legend()
-                #plt.show()       
-            """         
-        if count > 0:
-            #tqdm.write(f"{count/len(spectra)*100:.2f} % - {count} - {name}")
-            result[name] = count
+        common_count += 1
+        value = heap.peek()
+        if value is not None:
+            if value not in result:
+                result[value] = 0
+            result[value] += 1
+     
     print(f"Общее количество спектров = {common_count}")
     
     for key, value in sorted(result.items()):

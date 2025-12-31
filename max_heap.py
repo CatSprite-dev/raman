@@ -1,4 +1,7 @@
 class MaxHeap:
+    def __init__(self):
+        self.elements = []
+        
     def pop(self):
         if len(self.elements) == 0:
             return None
@@ -55,9 +58,6 @@ class MaxHeap:
                 self.elements[parent_index],
             )
             self.bubble_up(parent_index)
-
-    def __init__(self):
-        self.elements = []
 
     def peek(self):
         if len(self.elements) == 0:
